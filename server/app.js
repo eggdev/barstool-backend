@@ -1,10 +1,13 @@
-const express = require('express');
-const bodyParser = require('body-parser');
+const Express = require("express");
+const mongoose = require("mongoose");
+const BodyParser = require("body-parser");
 
-const app = express();
+var app = Express();
+app.use(BodyParser.json());
+app.use(BodyParser.urlencoded({ extended: true }));
 
-let port = 1234;
+mongoose.connect('mongodb://localhost/foreplay-gods-are-cool', { useNewUrlParser: true, useUnifiedTopology: true });
 
-app.listen(port, () => {
-    console.log('Server is up and running on port numner ' + port);
+app.listen(3000, () => {
+    console.log("Listening at :3000...");
 });
