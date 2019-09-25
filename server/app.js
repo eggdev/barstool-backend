@@ -1,7 +1,7 @@
 const Express = require("express");
 const BodyParser = require("body-parser");
 const cors = require('cors');
-const rp = require('request-promise');
+const request = require('request');
 
 var app = Express();
 app.use(BodyParser.json());
@@ -14,25 +14,41 @@ const Leagues = {
 }
 const dbData = '';
 
+function gatherGameData(leagueName) {
+    return new Promise((resolve, reject) => {
+        request(`https://chumley.barstoolsports.com/dev/data/games/${leagueName}`, (err, response, body) => {
+            if(err) {
+                reject(err);
+            } else {
+                resolve(JSON.parse(body));
+            }
+        });
+    })
+}
+
 // On the get request from the front end, check to see if there is data in the DB. 
 app.get('/data/:id', (req, res, next) => {
+    
     if(dbData !== '') {
         // If there is data, check to see when it was last updated
         // If its less than 15 seconds ago, return it to the front end
         // If that was greater than 15 seconds ago, call the api
             // After calling the API and returning it to the front end, cache it in the DB
 
-        // Store that info in the DB and then return the response to the front end
+        
 
     } else {
         // If there is no data, call the api
-        rp(`https://chumley.barstoolsports.com/dev/data/games/${Leagues[req.params.id]}`).then((body) => {
-            res.json(JSON.parse(body));
+        const response = gatherGameData(Leagues[req.params.id]);
+        response.then((data) => {
+            // Store that info in the DB
+
+            // return the response to the front end
+            res.json(data);
         }).catch((err) => {
-            console.log(err);
+            res.json(err);
         })
-    }
-    
+    } 
 });
 
 app.listen(3000, () => {
