@@ -1,36 +1,33 @@
 const collection = 'games';
 
 const getGameData = (db, cb) => {
-    db.getDB().collection(collection).find({}).toArray((err, docs) => {
+    db.getDB().collection(collection).find({}).toArray((err, responseData) => {
         if (err) console.log(err);
-        cb(docs);
+        cb(responseData);
     });
 }
 
 const inputGameData = (db, apiRes, cb) => {
-    const newStamp = Date.now();
+    const newStamp = new Date();
     db.getDB().collection(collection).insertOne({ 
         timeStamp: newStamp,
         data: apiRes
     }, (err, result) => {
         if (err) console.log(err);
-        console.log(result);
         cb(apiRes);
     });
 }
 
-const updateGameData = (db, params, cb) => {
-    const newStamp = Date.now();
+const updateGameData = (db, id, params, cb) => {
+    const newStamp = new Date();
     db.getDB().collection(collection)
         .findOneAndUpdate({
-            data: params.league
+            _id: id
         }, {
             $set: {
                 timeStamp: newStamp,
                 data: params 
             }
-        }, {
-            returnOriginal: false
         }, (err, result) => {
             if (err) console.log(err);
             cb(result, params);

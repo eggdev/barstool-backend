@@ -33,14 +33,20 @@ function getGameDataFromAPI(leagueName) {
 
 app.get('/data/:id', (req, res) => {
     // On the get request from the front end, check to see if there is data in the DB. 
+    const now = new Date();
     reqs.getGameData(db, (gameDataResponse) => {
-        const fifteen = 1000 * 15;
-        const now = Date.now();
-        // if data is missing
+        let oldTime;
+        let difference;
+        if((gameDataResponse.length > 0)) {
+            oldTime = new Date(gameDataResponse[0].timeStamp);
+            difference = ((now.getTime() - oldTime.getTime()) / 1000);
+        }
+        // Check to see if any data is in the Database
         const index = gameDataResponse.findIndex((i) => {
             return i.data.league.toLowerCase() === req.params.id;
         });
-        
+
+        // if data is missing
         if (index === -1) {
             // Input the data into DB
             getGameDataFromAPI(Leagues[req.params.id]).then((data) => {
@@ -50,18 +56,17 @@ app.get('/data/:id', (req, res) => {
                 })
             })
         // If data is older than 15 seconds
-        // } else if (now >= gameDataResponse[0].timeStamp + fifteen) {
-        //     // Get data from API again
-        //     console.log('timedout');
-        //     getGameDataFromAPI(Leagues[req.params.id]).then((data) => {
-        //         // And update the id with new info
-        //         reqs.updateGameData(db, data, (updatedGameDataResponse, newData) => {
-        //             res.json(newData);
-        //             return;
-        //         })
-        //     })
+        } else if (difference > 15) {
+            // Get data from API again
+            getGameDataFromAPI(Leagues[req.params.id]).then((data) => {
+                // And update the id with new info
+                reqs.updateGameData(db, gameDataResponse[0]._id, data, (updatedGameDataResponse, newData) => {
+                    res.json(newData);
+                    return;
+                })
+            })
         } else {
-            res.json(gameDataResponse[index]);
+            res.json(gameDataResponse[index].data);
             return;
         }
     })
