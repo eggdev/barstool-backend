@@ -17,6 +17,7 @@ const connect = (cb) => {
             useNewUrlParser: true,
             useUnifiedTopology: true
         }, (err, client) => {
+            if(err) console.log('Make sure mongod is running in a separate terminal');
             state.db = client.db(dbName);
             cb();
         });
