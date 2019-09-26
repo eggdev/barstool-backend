@@ -38,16 +38,20 @@ app.get('/data/:id', (req, res) => {
         let oldTime;
         let difference;
         if((gameDataResponse.length > 0)) {
+            // Get the timestamp from the data in the DB
             oldTime = new Date(gameDataResponse[0].timeStamp);
+            // And then get the difference in seconds from right now
             difference = ((now.getTime() - oldTime.getTime()) / 1000);
         }
         // Check to see if any data is in the Database
-        const index = gameDataResponse.findIndex((i) => {
-            return i.data.league.toLowerCase() === req.params.id;
+        const index = gameDataResponse.findIndex((dataIndex) => {
+            // Check for the index of the league request
+            return dataIndex.data.league.toLowerCase() === req.params.id;
         });
 
         // if data is missing
         if (index === -1) {
+            console.log('No data in DB. Fetching and caching')
             // Input the data into DB
             getGameDataFromAPI(Leagues[req.params.id]).then((data) => {
                 reqs.inputGameData(db, data, (newGameDataResponse) => {
@@ -57,6 +61,7 @@ app.get('/data/:id', (req, res) => {
             })
         // If data is older than 15 seconds
         } else if (difference > 15) {
+            console.log('Data is older than 15 seconds, request new data and cache it');
             // Get data from API again
             getGameDataFromAPI(Leagues[req.params.id]).then((data) => {
                 // And update the id with new info
@@ -66,6 +71,8 @@ app.get('/data/:id', (req, res) => {
                 })
             })
         } else {
+            // Send cached data
+            console.log('Return cached data');
             res.json(gameDataResponse[index].data);
             return;
         }
